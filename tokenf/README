@@ -1,0 +1,31 @@
+This is a token filter facility for Lua 5.1.
+
+The motivation for this piece of code is that many requests for new
+syntactic constructs can be easily coded by simple token manipulation.
+For more detail, see the presentations at the Lua Workshops in 2005 and
+2006 by Luiz Henrique de Figueiredo and Daniel Silverstone.
+
+The token filter works by giving you the opportunity to inspect and
+alter the stream of tokens coming from the lexer before they go to the
+parser. You get to see only tokens and you are only allowed to generate
+tokens -- you're not allowed to see the text coming to the lexer nor to
+generate text to go into the lexer. Luckily, the lexer does not raise
+errors on single-char tokens that it does not understand and so you
+can use those for your own purposes, but you're still only allowed to
+generate good Lua tokens.
+
+To filter tokens, define a global function called FILTER. This function
+will be called once before the parsing begins and then each time the
+parser needs a token. The first time FILTER is called, it receives a
+function to be used to get raw tokens. You should arrange to use this
+function during the actual filtering. (So, in practice you redefine
+FILTER the first time it is called.) One caveat is that you should not
+try to get more tokens after the parse has finished (either sucessfully
+or with an error) or you'll probably get a crash.
+
+That's it. You're on your own on how to filter tokens. I've found that
+coroutines are a good tool for implementing sequences of tokens filters.
+
+See examples in f*.lua, which affect the compilation of test.lua.
+(test.lua is not a valid Lua program unless processed via fnext.lua.)
+Try	make FILTER=fnext
